@@ -339,16 +339,6 @@ details{pointer-events:auto;position:relative}summary{cursor:pointer;list-style:
       :tA[i]+(Math.PI+dT[i])*turn;
     return local+state.turns*TAU;
   }
-  function paintReference(index,opacity) {
-    ctx.save();ctx.globalAlpha=opacity;
-    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
-    ctx.translate(cx,cy);ctx.rotate(index*Math.PI);
-    ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-    const image=referenceImages[index],height=1000*scale;
-    const width=height*image.naturalWidth/image.naturalHeight;
-    ctx.drawImage(image,-width/2,-height/2,width,height);
-    ctx.restore();
-  }
   function paint(angle) {
     const state=timeline(angle);
     const {p,f,morph,vortex}=state;
@@ -357,12 +347,7 @@ details{pointer-events:auto;position:relative}summary{cursor:pointer;list-style:
     ctx.setTransform(DPR,0,0,DPR,0,0);
     ctx.globalAlpha=1;
     ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
-    // Keep the original full-resolution texture at rest; blend continuously
-    // into the same reversible geometry in the first/last few degrees.
-    const q=state.second?(p-.5)*2:p*2;
-    const referenceOpacity=1-smooth(.02,.08,q)+smooth(.92,.98,q);
-    const referenceIndex=q<.5?Number(state.second):Number(!state.second);
-    if(referenceOpacity>=1){paintReference(referenceIndex,1);lastPaint=angle;return;}
+    // One continuous stroke field at every angle, including both endpoints.
     ctx.strokeStyle='#fff';ctx.lineWidth=lineWidth;
     ctx.lineCap='round';ctx.lineJoin='round';ctx.globalAlpha=1;
     if(gpu) {
@@ -399,7 +384,6 @@ details{pointer-events:auto;position:relative}summary{cursor:pointer;list-style:
     }
     }
     ctx.globalAlpha = 1;
-    if(referenceOpacity>0)paintReference(referenceIndex,referenceOpacity);
     lastPaint=angle;
   }
   function resize() {
